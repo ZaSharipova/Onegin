@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
+#include <sys/stat.h>
 
 FILE *open_file(const char *filename, const char *mode) {
     assert(filename != NULL);
@@ -33,16 +34,16 @@ void swap_lines_with_copies(char *text1, char *text2) {
     assert(text1 != NULL);
     assert(text2 != NULL);
 
-    char buf[45];
+    char buf[50];
     strcpy(buf, text1);
     strcpy(text1, text2);
     strcpy(text2, buf);
 }
 
-int swap_lines_with_char(char text[][46], size_t pos1, size_t pos2) {
+int swap_lines_with_char(char text[][STROKESIZE], size_t pos1, size_t pos2) {
     assert(text != NULL);
 
-    for (size_t size = 0; size < 46; size++) {
+    for (size_t size = 0; size < STROKESIZE; size++) {
         swap_char(&text[pos1][size], &text[pos2][size]); // с помощью чаров
     }
 
@@ -68,12 +69,12 @@ void swap_pointers(char **ptr1, char **ptr2) { //
     *ptr2 = tmp;
 }
 
-void swap_all_with_char(char text[][46]) {
+void swap_all_with_char(char text[][STROKESIZE]) {
     assert(text != NULL);
 
-    for (size_t pos = 0; pos < 27; pos++) {
+    for (size_t pos = 0; pos < FILESIZE; pos++) {
         int sorted = 0;
-        for (size_t j = 0; j < 27 - pos; j++) {
+        for (size_t j = 0; j < FILESIZE - pos - 1; j++) {
             if (strcmp(text[j], text[j + 1]) > 0) {
                 swap_lines_with_char(text, j, j + 1);
                 sorted = 1;
@@ -86,12 +87,12 @@ void swap_all_with_char(char text[][46]) {
     }
 }
 
-void swap_all_with_pointers(char *text[], size_t n) {
+void swap_all_with_pointers(char *text[]) {
     assert(text != NULL);
 
-    for (size_t i = 0; i < n; i++) {
+    for (size_t i = 0; i < FILESIZE; i++) {
         int sorted = 0;
-        for (size_t j = 0; j < n - i - 1; j++) {
+        for (size_t j = 0; j < FILESIZE - i - 1; j++) {
             if (strcmp(text[j], text[j + 1]) > 0) {
                 swap_pointers(&text[j], &text[j + 1]);
                 sorted = 1;
@@ -103,12 +104,12 @@ void swap_all_with_pointers(char *text[], size_t n) {
     }
 }
 
-int sort_with_strcpy(char text[][46]) {
+int sort_with_strcpy(char text[][STROKESIZE]) {
     assert(text != NULL);
 
-    for (size_t i = 0; i < 27; i++) {
+    for (size_t i = 0; i < FILESIZE; i++) {
         int sorted = 0;
-        for (size_t j = 0; j < 27 - i - 1; j++) {
+        for (size_t j = 0; j < FILESIZE - i - 1; j++) {
             if (strcmp(text[j], text[j + 1]) > 0) {
                 swap_lines_with_copies(text[j], text[j + 1]); // с помощью копирования строк полностью
                 sorted = 1;
@@ -128,37 +129,28 @@ size_t partition(char *text[], size_t left, size_t right) {
     size_t mid = (left + right) / 2;
     char *pivot = text[mid];
 
-    while (left <= right) {
-        while (left <= right && Mstrcmp(text[left], pivot) < 0) {
-            left++;
-        }
+    while (1) {
+        while (Mstrcmp(text[left], pivot) < 0) left++;
+        while (Mstrcmp(text[right], pivot) > 0) right--;
 
-        while (left <= right && Mstrcmp(text[right], pivot) > 0) {
-            right--;
-        }
+        if (left >= right) return right;
 
-        if (left <= right) {
-            swap_pointers(&text[left], &text[right]);
-            left++;
-            right--;
-        }
+        swap_pointers(&text[left], &text[right]);
+        left++;
+        if (right > 0) right--;
     }
-
-    return left;
 }
 
 void quick_sort(char *text[], size_t left, size_t right) {
-    assert(text != NULL);
+    if (left >= right) return;
 
-    if (left + 1 >= right) {
-        return;
-    } 
-    size_t sep = partition(text, left, right - 1);
-    quick_sort(text, left, sep);
-    quick_sort(text, sep, right); // TODO стэк для рекурсии
+    size_t sep = partition(text, left, right);
+
+    if (sep > left) quick_sort(text, left, sep);
+    if (sep + 1 < right) quick_sort(text, sep + 1, right); // todo стэк
 }
 
-void swap_blocks(char *text1, char *text2, size_t n) {
+void swap_blocks(char *text1, char *text2, size_t n) { //TODO проверить работу
     assert(text1 != NULL);
     assert(text2 != NULL);
 
@@ -173,7 +165,7 @@ void swap_blocks(char *text1, char *text2, size_t n) {
     }
 
     count *= sizeof(unsigned long long);
-    while (count < 45) {
+    while (count < STROKESIZE) {
         swap_char(&text1[count], &text2[count]);
         count++;
     }
@@ -205,4 +197,22 @@ int Mstrcmp(const char *str1, const char *str2) {
     }
 
     return (str1[pos] == '\0') ? (-1) : (1);
+}
+
+void output_sorted_onegin(char *text[], size_t size) {
+    assert(text != NULL);
+
+    FILE *file = open_file("SortedOnegin.txt", "w");
+    if (file == NULL) {
+        perror("fopen() failed");
+    }
+
+    for (size_t i = 0; i < size; i++) {
+        fprintf(file, "%s", text[i]);
+    }
+
+    PossibleErrors err = close_file(file);
+    if (err != kNoError) {
+        perror("fclose() failed");
+    }
 }
