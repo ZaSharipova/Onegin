@@ -49,7 +49,7 @@ size_t read_lines(char **text_ptr, FILE *file) {
     while (count < FILESIZE) {
         char *ptr1 = fgets(buf, STROKESIZE, file);
         if (ptr1 == NULL) {
-            break;  // конец файла или ошибка
+            break;
         }
 
         char *ptr = strdup(buf);
@@ -64,30 +64,18 @@ size_t read_lines(char **text_ptr, FILE *file) {
 int pointers_text(char **text_ptr) {
     assert(text_ptr != NULL);
 
-    FILE *file = open_file("textonegin.txt", "r");
-    if (file == NULL) {
-        return kErrorOpening;
-    }
+    buf_input("textonegin.txt", text_ptr);
 
-    size_t line_count = read_lines(text_ptr, file); //TODO считывание в буфер -> затем уже в массив
-    // for (size_t i = 0; i < line_count; i++) {
-    //     printf("%s\n", text_ptr[i]);
-    // }
-    //strswap_pointers(text_ptr, 28);
+    size_t line_count = FILESIZE;
+
     quick_sort(text_ptr, 0, line_count - 1);
-    // for (size_t i = 0; i < line_count; i++) {
-    //     printf("%s\n", text_ptr[i]);
-    // }
-    // printf("\n\n\n");
     output_sorted_onegin(text_ptr, line_count);
 
+   FILE *file = fopen("SortedOnegin.txt", "w");
+
+    output_with_buf(text_ptr, file);
     for (size_t j = 0; j < line_count; j++) {
         free(text_ptr[j]);
-    }
-
-    PossibleErrors err = close_file(file);
-    if (err != kNoError) {
-        return err;
     }
 
     return kNoError;
@@ -95,10 +83,6 @@ int pointers_text(char **text_ptr) {
 
 int main(void) {
     char ** text_ptr = (char **) calloc(FILESIZE + 1, sizeof(char *));
-    //char *text_ptr[28];
-    // for (int i = 0; i < 28; i++) {
-    //     text_ptr[i] = "10000";
-    // }
     
     int err = pointers_text(text_ptr);
     free(text_ptr);

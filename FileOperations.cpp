@@ -1,5 +1,6 @@
 #include "FileOperations.h"
 
+
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
@@ -44,20 +45,19 @@ int swap_lines_with_char(char text[][STROKESIZE], size_t pos1, size_t pos2) {
     assert(text != NULL);
 
     for (size_t size = 0; size < STROKESIZE; size++) {
-        swap_char(&text[pos1][size], &text[pos2][size]); // с помощью чаров
+        swap_two_chars(&text[pos1][size], &text[pos2][size]);
     }
 
     return kNoError;
 }
 
-int swap_char(char *char1, char *char2) {
+void swap_two_chars(char *char1, char *char2) {
     assert(char1 != NULL);
     assert(char2 != NULL);
 
     char buf = *char1;
     *char1 = *char2;
     *char2 = buf;
-    return kNoError;
 }
 
 void swap_pointers(char **ptr1, char **ptr2) { //
@@ -72,11 +72,12 @@ void swap_pointers(char **ptr1, char **ptr2) { //
 void swap_all_with_char(char text[][STROKESIZE]) {
     assert(text != NULL);
 
-    for (size_t pos = 0; pos < FILESIZE; pos++) {
+    for (size_t index_sort = 0; index_sort < FILESIZE; index_sort++) {
         int sorted = 0;
-        for (size_t j = 0; j < FILESIZE - pos - 1; j++) {
-            if (strcmp(text[j], text[j + 1]) > 0) {
-                swap_lines_with_char(text, j, j + 1);
+
+        for (size_t pos_compared = 0; pos_compared < FILESIZE - index_sort - 1; pos_compared++) {
+            if (strcmp(text[pos_compared], text[pos_compared + 1]) > 0) {
+                swap_lines_with_char(text, pos_compared, pos_compared + 1);
                 sorted = 1;
             }
         }
@@ -90,11 +91,11 @@ void swap_all_with_char(char text[][STROKESIZE]) {
 void swap_all_with_pointers(char *text[]) {
     assert(text != NULL);
 
-    for (size_t i = 0; i < FILESIZE; i++) {
+    for (size_t index_sort = 0; index_sort < FILESIZE; index_sort++) {
         int sorted = 0;
-        for (size_t j = 0; j < FILESIZE - i - 1; j++) {
-            if (strcmp(text[j], text[j + 1]) > 0) {
-                swap_pointers(&text[j], &text[j + 1]);
+        for (size_t pos_compared = 0; pos_compared < FILESIZE - index_sort - 1; pos_compared++) {
+            if (strcmp(text[pos_compared], text[pos_compared + 1]) > 0) {
+                swap_pointers(&text[pos_compared], &text[pos_compared + 1]);
                 sorted = 1;
             }
         }
@@ -104,14 +105,15 @@ void swap_all_with_pointers(char *text[]) {
     }
 }
 
-int sort_with_strcpy(char text[][STROKESIZE]) {
+void sort_with_strcpy(char text[][STROKESIZE]) {
     assert(text != NULL);
 
-    for (size_t i = 0; i < FILESIZE; i++) {
+    for (size_t index_sort = 0; index_sort < FILESIZE; index_sort++) {
         int sorted = 0;
-        for (size_t j = 0; j < FILESIZE - i - 1; j++) {
-            if (strcmp(text[j], text[j + 1]) > 0) {
-                swap_lines_with_copies(text[j], text[j + 1]); // с помощью копирования строк полностью
+
+        for (size_t pos_compared = 0; pos_compared < FILESIZE - index_sort - 1; pos_compared++) {
+            if (strcmp(text[pos_compared], text[pos_compared + 1]) > 0) {
+                swap_lines_with_copies(text[pos_compared], text[pos_compared + 1]);
                 sorted = 1;
             }
         }
@@ -120,7 +122,6 @@ int sort_with_strcpy(char text[][STROKESIZE]) {
             break;
         }
     }
-    return 0;
 }
 
 size_t partition(char *text[], size_t left, size_t right) {
@@ -142,6 +143,8 @@ size_t partition(char *text[], size_t left, size_t right) {
 }
 
 void quick_sort(char *text[], size_t left, size_t right) {
+    assert(text != NULL);
+
     if (left >= right) return;
 
     size_t sep = partition(text, left, right);
@@ -158,15 +161,15 @@ void swap_blocks(char *text1, char *text2, size_t n) { //TODO проверить
     unsigned long long *pa = (unsigned long long *)text1;
     unsigned long long *pb = (unsigned long long *)text2;
 
-    for (size_t i = 0; i < count; i++) {
-        unsigned long long temp = pa[i];
-        pa[i] = pb[i];
-        pb[i] = temp;
+    for (size_t pos = 0; pos < count; pos++) {
+        unsigned long long temp = pa[pos];
+        pa[pos] = pb[pos];
+        pb[pos] = temp;
     }
 
     count *= sizeof(unsigned long long);
     while (count < STROKESIZE) {
-        swap_char(&text1[count], &text2[count]);
+        swap_two_chars(&text1[count], &text2[count]);
         count++;
     }
 }
@@ -192,6 +195,7 @@ int Mstrcmp(const char *str1, const char *str2) {
         }
         pos++;
     }
+
     if (str1[pos] == '\0' && str2[pos] == '\0') {
         return 0;
     }
@@ -207,8 +211,8 @@ void output_sorted_onegin(char *text[], size_t size) {
         perror("fopen() failed");
     }
 
-    for (size_t i = 0; i < size; i++) {
-        fprintf(file, "%s", text[i]);
+    for (size_t pos = 0; pos < size; pos++) {
+        fprintf(file, "%s\n", text[pos]);
     }
 
     PossibleErrors err = close_file(file);
@@ -216,3 +220,112 @@ void output_sorted_onegin(char *text[], size_t size) {
         perror("fclose() failed");
     }
 }
+
+long long size_of_file(const char *filename) {
+    assert(filename != NULL);
+
+    struct stat stbuf;
+
+    int err = stat(filename, &stbuf);
+    if (err != kNoError) {
+        perror("stat failed");
+        return -1; //добавить ключ
+    }
+
+    return stbuf.st_size;
+}
+
+char *read_to_buf(const char *filename, FILE *file) {
+    assert(filename != NULL);
+    assert(file     != NULL);
+
+    size_t filesize = (size_t)size_of_file(filename);
+
+    char *buf = (char *) calloc(filesize + 1, sizeof(char));
+    
+    fread(buf, sizeof(buf[0]), filesize, file);
+
+    return buf;
+}
+
+void parse_buf(char *buf, char **text_ptr) {
+    assert(buf      != NULL);
+    assert(text_ptr != NULL);
+
+    size_t index_line = 0;
+    //int cnt = 0;
+    char *start = buf;
+    while (index_line < FILESIZE && *start) {
+        char *end = strchr(start, '\n');
+        if (!end) {
+            end = start + strlen(start);
+        }
+        
+        size_t len = end - start;
+        text_ptr[index_line] = (char *)calloc(len + 1, sizeof (char));
+
+        memcpy(text_ptr[index_line], start, len);
+        text_ptr[index_line][len] = '\0';
+        index_line++;
+
+        if (*end == '\n') {
+            start = end + 1;
+        } else {
+            break;
+        }
+    }
+}
+
+PossibleErrors buf_input(const char *filename, char **text_ptr) {
+    assert(filename != NULL);
+    assert(text_ptr != NULL);
+
+    FILE *file = open_file(filename, "r");
+    if (file == NULL) {
+        perror("fopen() failed");
+        return kErrorOpening; //?
+    }
+
+    char *buf = read_to_buf(filename, file);
+    assert(buf != NULL);
+
+    parse_buf(buf, text_ptr);
+
+    free(buf);
+
+    int err = close_file(file);
+    if (err != kNoError) {
+        perror("fclse() failed");
+        return kErrorClosing;
+    }
+
+    return kNoError;
+}
+
+void output_with_buf(char **text_ptr, FILE *file) {
+    assert(text_ptr != NULL);
+    assert(file     != NULL);
+
+    size_t filesize = (size_t)size_of_file("textonegin.txt");
+    char *buf = (char *) calloc(filesize + 5333, sizeof(char)); //размер подумать еще
+    char *ptr = buf;
+    for (size_t i = 0; i < FILESIZE; i++) { //
+        size_t len = strlen(text_ptr[i]);
+
+        memcpy(ptr, text_ptr[i], len);
+        ptr += len;
+        *ptr = '\n';
+        ptr++;
+    }
+    *ptr = '\0';
+
+    size_t size = strlen(buf);
+
+    size_t status = fwrite(buf, sizeof(char), size, file);
+    if (status != size) {
+        perror("fwrite failed");
+    }
+
+    fclose(file);
+    free(buf);
+} 
