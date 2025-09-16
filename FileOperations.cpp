@@ -125,32 +125,33 @@ void sort_with_strcpy(char text[][STROKESIZE]) {
 }
 
 size_t partition(char *text[], size_t left, size_t right) {
-    assert(text != NULL);
-
     size_t mid = (left + right) / 2;
     char *pivot = text[mid];
 
-    while (1) {
-        while (Mstrcmp(text[left], pivot) < 0) left++;
-        while (Mstrcmp(text[right], pivot) > 0) right--;
-
-        if (left >= right) return right;
-
-        swap_pointers(&text[left], &text[right]);
-        left++;
-        if (right > 0) right--;
+    while (left <= right) {
+        while (Mstrcmp(text[left], pivot) < 0) {
+            left++;
+        }
+        while (Mstrcmp(text[right], pivot) > 0) {
+            right--;
+        }
+        if (left <= right) {
+            swap_pointers(&text[left], &text[right]);
+            left++;
+            right--;
+        }
     }
+    return left;
 }
 
 void quick_sort(char *text[], size_t left, size_t right) {
-    assert(text != NULL);
+    if (left + 1 >= right) {
+        return;
+    }
 
-    if (left >= right) return;
-
-    size_t sep = partition(text, left, right);
-
-    if (sep > left) quick_sort(text, left, sep);
-    if (sep + 1 < right) quick_sort(text, sep + 1, right); // todo стэк
+    size_t sep = partition(text, left, right - 1);
+    quick_sort(text, left, sep);
+    quick_sort(text, sep, right);
 }
 
 void swap_blocks(char *text1, char *text2, size_t n) { //TODO проверить работу

@@ -68,7 +68,7 @@ int pointers_text(char **text_ptr) {
 
     size_t line_count = FILESIZE;
 
-    quick_sort(text_ptr, 0, line_count - 1);
+    quick_sort(text_ptr, 0, line_count);
     output_sorted_onegin(text_ptr, line_count);
 
    FILE *file = fopen("SortedOnegin.txt", "w");
