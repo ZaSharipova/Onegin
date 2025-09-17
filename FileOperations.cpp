@@ -12,30 +12,32 @@
 int pointers_text(struct LineInfo *text_ptr) {
     assert(text_ptr != NULL);
 
-    char *buf_ptr;
+    char *buf_ptr = NULL;
     size_t line_count = 0;
-    buf_input("textonegin.txt", text_ptr, &buf_ptr, &line_count);
+    size_t filesize = (size_t)size_of_file("textonegin.txt");
+
+    buf_input("textonegin.txt", text_ptr, &buf_ptr, &line_count, filesize);
 
     //bubble_sort(text_ptr);
-    quick_sort(text_ptr, 0, line_count, compare_LtoR);
+    quick_sort(text_ptr, 0, (int)line_count, compare_LtoR);
 
     FILE *file = fopen("SortedOnegin.txt", "w");
 
     print_sorted_LtoR_label(file);
-    output_with_buf(text_ptr, file);
-    printf("Sorting  1 done. It is from line %zu\n", 4);
+    output_with_buf(text_ptr, file, filesize);
+    printf("Sorting  1 done. It is from line %d\n", 4);
 
-    //quick_sort(text_ptr, 0, line_count, compare_RtoL);
-    //qsort(text_ptr, sizeof(char), size_of_file("textonegin.txt"), compare_RtoL);
-    bubble_sort(text_ptr);
+    quick_sort(text_ptr, 0, (int)line_count, compare_RtoL);
+    //qsort(text_ptr, FILESIZE, sizeof(LineInfo), compare_RtoL);
+    //bubble_sort(text_ptr);
 
     print_sorted_RtoL_label(file);
-    output_with_buf(text_ptr, file);
-    printf("Sorting  2 done. You can see it from line %zu\n", FILESIZE + 7);
+    output_with_buf(text_ptr, file, filesize);
+    printf("Sorting  2 done. You can see it from line %d\n", LINECOUNT + 7);
 
     print_original_label(file);
     output_original_text(file, buf_ptr);
-    printf("Original Text is from line %zu\n", FILESIZE * 2 + 10);
+    printf("Original Text is from line %d\n", LINECOUNT * 2 + 10);
 
     free(buf_ptr);
     return kNoError;
@@ -80,11 +82,9 @@ long long size_of_file(const char *filename) {
     return stbuf.st_size;
 }
 
-char *read_to_buf(const char *filename, FILE *file) {
+char *read_to_buf(const char *filename, FILE *file, size_t filesize) {
     assert(filename != NULL);
     assert(file     != NULL);
-
-    size_t filesize = (size_t)size_of_file(filename);
 
     char *buf_in = (char *) calloc(filesize + 2, sizeof(char));
     assert(buf_in != NULL);
@@ -105,7 +105,7 @@ char *read_to_buf(const char *filename, FILE *file) {
     return buf_in;
 }
 
-size_t parse_buf(char *buf, struct LineInfo *text_ptr) {
+size_t parse_buf(char *buf, struct LineInfo *text_ptr, size_t bufsize) {
     assert(buf      != NULL);
     assert(text_ptr != NULL);
 
@@ -114,8 +114,7 @@ size_t parse_buf(char *buf, struct LineInfo *text_ptr) {
     char *alpha_start = NULL;
     char *alpha_end = NULL;
 
-    size_t bufsize = (size_t)size_of_file("textonegin.txt") + 1;
-    //printf("%zu\n", bufsize);
+    bufsize++;
     for (size_t i = 0; i <= bufsize; i++) {
         char c = buf[i];
         int end_of_buffer = (i == bufsize);
@@ -132,7 +131,7 @@ size_t parse_buf(char *buf, struct LineInfo *text_ptr) {
         }
 
         if (end_of_line) {
-            if (line_idx >= FILESIZE) {
+            if (line_idx >= LINECOUNT) {
                 break;
             }
 
@@ -142,7 +141,7 @@ size_t parse_buf(char *buf, struct LineInfo *text_ptr) {
             text_ptr[line_idx].start_ptr_alpha = alpha_start;
             text_ptr[line_idx].end_ptr_alpha = alpha_end;
 
-            text_ptr[line_idx].size = &buf[i - 1] - line_start + 1;
+            text_ptr[line_idx].size = (size_t)(&buf[i - 1] - line_start) + 1;
 
             line_idx++;
 
@@ -151,10 +150,11 @@ size_t parse_buf(char *buf, struct LineInfo *text_ptr) {
             alpha_end = NULL;
         }
     }
+
     return line_idx;
 }
 
-PossibleErrors buf_input(const char *filename, struct LineInfo *text_ptr, char **buf_ptr, size_t *line_count) {
+PossibleErrors buf_input(const char *filename, struct LineInfo *text_ptr, char **buf_ptr, size_t *line_count, size_t filesize) {
     assert(filename != NULL);
     assert(text_ptr != NULL);
 
@@ -164,10 +164,10 @@ PossibleErrors buf_input(const char *filename, struct LineInfo *text_ptr, char *
         return kErrorOpening;
     }
 
-    *buf_ptr = read_to_buf(filename, file);
+    *buf_ptr = read_to_buf(filename, file, filesize);
     assert(buf_ptr != NULL);
 
-    *line_count = parse_buf(*buf_ptr, text_ptr);
+    *line_count = parse_buf(*buf_ptr, text_ptr, filesize);
 
     //free(buf);
 
@@ -180,16 +180,15 @@ PossibleErrors buf_input(const char *filename, struct LineInfo *text_ptr, char *
     return kNoError;
 }
 
-void output_with_buf(struct LineInfo *text_ptr, FILE *file) {
+void output_with_buf(struct LineInfo *text_ptr, FILE *file, size_t filesize) {
     assert(text_ptr != NULL);
     assert(file     != NULL);
 
-    size_t filesize = (size_t)size_of_file("textonegin.txt");
-    char *buf_out = (char *) calloc(filesize + 5333, sizeof(char)); //размер подумать еще
+    char *buf_out = (char *) calloc(filesize + LINECOUNT, sizeof(char)); //размер подумать еще раз
     assert(buf_out != NULL);
     char *ptr = buf_out;
 
-    for (size_t i = 0; i < FILESIZE; i++) { //
+    for (size_t i = 0; i < LINECOUNT; i++) { //
 
         memcpy(ptr, text_ptr[i].start_ptr, text_ptr[i].size);
         ptr += text_ptr[i].size;
@@ -220,5 +219,3 @@ void output_original_text(FILE *file, char *buf) {
     fclose(file);
 
 }
-//TODO добавить ассертов
-//TODO tolower

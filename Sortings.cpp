@@ -14,26 +14,28 @@ void swap_lineinfo(struct LineInfo *arr1, struct LineInfo *arr2) {
     *arr2 = temp;
 }
 
-size_t partition(struct LineInfo *text_ptr, size_t left, size_t right, int (*compares)(const void *, const void *)) {
+int partition(struct LineInfo *text_ptr, int left, int right, int (*compares)(const void *, const void *)) {
     assert(text_ptr != NULL);
     assert(compares != NULL);
 
-    size_t mid = (left + right) / 2;
+    int mid = (left + right) / 2;
     LineInfo pivot = text_ptr[mid];
-    //char *pivot_start  = text_ptr[mid].start_ptr_alpha;
-
-    // if (text_ptr[left].start_ptr == NULL || pivot == NULL) fprintf(stderr, "%zu %zu", left, right);
-    // if (text_ptr[right].start_ptr == NULL || pivot == NULL) perror("right");
+    assert(mid < LINECOUNT);
 
     while (left <= right) {
-
+        assert(left < LINECOUNT);
+        assert(right >= 0);
+        assert(right < LINECOUNT);
+        
         while (left <= right && compares(&text_ptr[left], &pivot) < 0) {
             left++;
+            assert(left < LINECOUNT);
         }
 
         while (left <= right && compares(&text_ptr[right], &pivot) > 0) {
-            if (right == 0) break;
+            if (right <= 0) break;
             right--;
+            assert(right >= 0);
         }
 
         if (left <= right) {
@@ -42,11 +44,12 @@ size_t partition(struct LineInfo *text_ptr, size_t left, size_t right, int (*com
             right--;
         }
     }
-
+    assert(left < LINECOUNT);
     return left;
+
 }
 
-void quick_sort(struct LineInfo *text_ptr, size_t left, size_t right, int (*compares)(const void *, const void *)) {
+void quick_sort(struct LineInfo *text_ptr, int left, int right, int (*compares)(const void *, const void *)) {
     assert(text_ptr != NULL);
     assert(compares != NULL);
 
@@ -54,9 +57,13 @@ void quick_sort(struct LineInfo *text_ptr, size_t left, size_t right, int (*comp
         return;
     }
 
-    size_t sep = partition(text_ptr, left, right - 1, compares);
-    quick_sort(text_ptr, left, sep, compares);
-    quick_sort(text_ptr, sep, right, compares);
+    assert(right - 1 < LINECOUNT);
+    int sep = 0;
+    if (right > 0) {
+        sep = partition(text_ptr, left, right - 1, compares);
+        quick_sort(text_ptr, left, sep, compares);
+        quick_sort(text_ptr, sep, right, compares);
+    }
 }
 
 // void quick_sort_modified(char *text[], size_t left, size_t right, struct limits ) {
@@ -88,48 +95,38 @@ void bubble_sort(LineInfo *text_ptr) {
 }
 
 int Mstrcmp_LtoR(char *str1, char *str2, char *end_ptr1, char *end_ptr2) {
-    assert(str1 != NULL);
-    assert(str2 != NULL);
+    assert(str1     != NULL);
+    assert(str2     != NULL);
     assert(end_ptr1 != NULL);
     assert(end_ptr2 != NULL);
 
     while (str1 <= end_ptr1 && str2 <= end_ptr2) {
-        char symbol1 = *str1;
-        char symbol2 = *str2;
-
-        if (isupper(symbol1)) {
-            symbol1 = (unsigned char)tolower(symbol1);
-        }
-        if (isupper(symbol2)) {
-            symbol2 = (unsigned char)tolower(symbol2);
-        }
+        char symbol1 = (char)tolower(*str1);
+        char symbol2 = (char)tolower(*str2);
 
         if (symbol1 != symbol2) {
             return (symbol1 > symbol2) ? (1) : (-1);
         }
+
         str1++, str2++;
     }
 
-    if (str1 > end_ptr1 && str2 > end_ptr2) return 0;
-    return ((str1 > end_ptr1) ? -1 : 1);
+    if (str1 > end_ptr1 && str2 > end_ptr2) {
+        return 0;
+    }
+
+    return ((str1 > end_ptr1) ? (-1) : (1));
 }
 
 int Mstrcmp_RtoL(char *str1, char *str2, char *start_ptr1, char *start_ptr2) {
-    assert(str1 != NULL);
-    assert(str2 != NULL);
+    assert(str1       != NULL);
+    assert(str2       != NULL);
     assert(start_ptr1 != NULL);
     assert(start_ptr2 != NULL);
     
     while (str1 >= start_ptr1 && str2 >= start_ptr2) {
-        char symbol1 = *str1;
-        char symbol2 = *str2;
-
-        if (isupper(symbol1)) {
-            symbol1 = (unsigned char)tolower(symbol1);
-        }
-        if (isupper(symbol2)) {
-            symbol2 = (unsigned char)tolower(symbol2);
-        }
+        char symbol1 = (char)tolower(*str1);
+        char symbol2 = (char)tolower(*str2);
 
         if (symbol1 != symbol2) {
             return (symbol1 > symbol2) ? (1) : (-1);
@@ -146,19 +143,31 @@ int Mstrcmp_RtoL(char *str1, char *str2, char *start_ptr1, char *start_ptr2) {
 }
 
 int compare_LtoR(const void *a, const void *b) {
+    assert(a != NULL);
+    assert(b != NULL);
+    
     const LineInfo *A = (const LineInfo *) a;
     const LineInfo *B = (const LineInfo *) b;
+
     return Mstrcmp_LtoR(A->start_ptr_alpha, B->start_ptr_alpha, A->end_ptr, B->end_ptr);
 }
 
 int compare_RtoL(const void *a, const void *b) {
+    assert(a != NULL);
+    assert(b != NULL);
+
     const LineInfo *A = (const LineInfo *) a;
     const LineInfo *B = (const LineInfo *) b;
+
     return Mstrcmp_RtoL(A->end_ptr_alpha, B->end_ptr_alpha, A->start_ptr, B->start_ptr);
 }
 
 int compare_bubble_LtoR(const void *a, const void *b) {
+    assert(a != NULL);
+    assert(b != NULL);
+
     const LineInfo *A = (const LineInfo *) a;
     const LineInfo *B = (const LineInfo *) b;
+
     return Mstrcmp_RtoL(A->start_ptr_alpha, B->start_ptr_alpha, A->end_ptr, B->end_ptr);
 }

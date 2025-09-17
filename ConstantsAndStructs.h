@@ -3,13 +3,8 @@
 
 #include <stdio.h>
 
-#ifndef FILESIZE
-#define FILESIZE 5332
-#endif
-
-#ifndef STROKESIZE
+#define LINECOUNT 5332
 #define STROKESIZE 48
-#endif
 
 enum PossibleErrors {
     kNoError      = 0,
