@@ -1,10 +1,45 @@
 #include "FileOperations.h"
 
-
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <ctype.h>
+
+#include "Sortings.h"
+#include "AllOutputText.h"
+
+int pointers_text(struct LineInfo *text_ptr) {
+    assert(text_ptr != NULL);
+
+    char *buf_ptr;
+    size_t line_count = 0;
+    buf_input("textonegin.txt", text_ptr, &buf_ptr, &line_count);
+
+    //bubble_sort(text_ptr);
+    quick_sort(text_ptr, 0, line_count, compare_LtoR);
+
+    FILE *file = fopen("SortedOnegin.txt", "w");
+
+    print_sorted_LtoR_label(file);
+    output_with_buf(text_ptr, file);
+    printf("Sorting  1 done. It is from line %zu\n", 4);
+
+    //quick_sort(text_ptr, 0, line_count, compare_RtoL);
+    //qsort(text_ptr, sizeof(char), size_of_file("textonegin.txt"), compare_RtoL);
+    bubble_sort(text_ptr);
+
+    print_sorted_RtoL_label(file);
+    output_with_buf(text_ptr, file);
+    printf("Sorting  2 done. You can see it from line %zu\n", FILESIZE + 7);
+
+    print_original_label(file);
+    output_original_text(file, buf_ptr);
+    printf("Original Text is from line %zu\n", FILESIZE * 2 + 10);
+
+    free(buf_ptr);
+    return kNoError;
+}
 
 FILE *open_file(const char *filename, const char *mode) {
     assert(filename != NULL);
@@ -31,197 +66,6 @@ PossibleErrors close_file(FILE *file) {
     return kNoError;
 }
 
-void swap_lines_with_copies(char *text1, char *text2) {
-    assert(text1 != NULL);
-    assert(text2 != NULL);
-
-    char buf[50];
-    strcpy(buf, text1);
-    strcpy(text1, text2);
-    strcpy(text2, buf);
-}
-
-int swap_lines_with_char(char text[][STROKESIZE], size_t pos1, size_t pos2) {
-    assert(text != NULL);
-
-    for (size_t size = 0; size < STROKESIZE; size++) {
-        swap_two_chars(&text[pos1][size], &text[pos2][size]);
-    }
-
-    return kNoError;
-}
-
-void swap_two_chars(char *char1, char *char2) {
-    assert(char1 != NULL);
-    assert(char2 != NULL);
-
-    char buf = *char1;
-    *char1 = *char2;
-    *char2 = buf;
-}
-
-void swap_pointers(char **ptr1, char **ptr2) { //
-    assert(ptr1 != NULL);
-    assert(ptr2 != NULL);
-
-    char *tmp = *ptr1;
-    *ptr1 = *ptr2;
-    *ptr2 = tmp;
-}
-
-void swap_all_with_char(char text[][STROKESIZE]) {
-    assert(text != NULL);
-
-    for (size_t index_sort = 0; index_sort < FILESIZE; index_sort++) {
-        int sorted = 0;
-
-        for (size_t pos_compared = 0; pos_compared < FILESIZE - index_sort - 1; pos_compared++) {
-            if (strcmp(text[pos_compared], text[pos_compared + 1]) > 0) {
-                swap_lines_with_char(text, pos_compared, pos_compared + 1);
-                sorted = 1;
-            }
-        }
-
-        if (sorted == 0) {
-            break;
-        }
-    }
-}
-
-void swap_all_with_pointers(char *text[]) {
-    assert(text != NULL);
-
-    for (size_t index_sort = 0; index_sort < FILESIZE; index_sort++) {
-        int sorted = 0;
-        for (size_t pos_compared = 0; pos_compared < FILESIZE - index_sort - 1; pos_compared++) {
-            if (strcmp(text[pos_compared], text[pos_compared + 1]) > 0) {
-                swap_pointers(&text[pos_compared], &text[pos_compared + 1]);
-                sorted = 1;
-            }
-        }
-        if (sorted == 0) {
-            break;
-        }
-    }
-}
-
-void sort_with_strcpy(char text[][STROKESIZE]) {
-    assert(text != NULL);
-
-    for (size_t index_sort = 0; index_sort < FILESIZE; index_sort++) {
-        int sorted = 0;
-
-        for (size_t pos_compared = 0; pos_compared < FILESIZE - index_sort - 1; pos_compared++) {
-            if (strcmp(text[pos_compared], text[pos_compared + 1]) > 0) {
-                swap_lines_with_copies(text[pos_compared], text[pos_compared + 1]);
-                sorted = 1;
-            }
-        }
-
-        if (sorted == 0) {
-            break;
-        }
-    }
-}
-
-size_t partition(char *text[], size_t left, size_t right) {
-    size_t mid = (left + right) / 2;
-    char *pivot = text[mid];
-
-    while (left <= right) {
-        while (Mstrcmp(text[left], pivot) < 0) {
-            left++;
-        }
-        while (Mstrcmp(text[right], pivot) > 0) {
-            right--;
-        }
-        if (left <= right) {
-            swap_pointers(&text[left], &text[right]);
-            left++;
-            right--;
-        }
-    }
-    return left;
-}
-
-void quick_sort(char *text[], size_t left, size_t right) {
-    if (left + 1 >= right) {
-        return;
-    }
-
-    size_t sep = partition(text, left, right - 1);
-    quick_sort(text, left, sep);
-    quick_sort(text, sep, right);
-}
-
-void swap_blocks(char *text1, char *text2, size_t n) { //TODO проверить работу
-    assert(text1 != NULL);
-    assert(text2 != NULL);
-
-    size_t count = n / sizeof(unsigned long long);
-    unsigned long long *pa = (unsigned long long *)text1;
-    unsigned long long *pb = (unsigned long long *)text2;
-
-    for (size_t pos = 0; pos < count; pos++) {
-        unsigned long long temp = pa[pos];
-        pa[pos] = pb[pos];
-        pb[pos] = temp;
-    }
-
-    count *= sizeof(unsigned long long);
-    while (count < STROKESIZE) {
-        swap_two_chars(&text1[count], &text2[count]);
-        count++;
-    }
-}
-
-int Mstrcmp(const char *str1, const char *str2) {
-    assert(str1 != NULL);
-    assert(str2 != NULL);
-
-    size_t pos = 0;
-    while (str1[pos] != '\0' && str2[pos] != '\0') {
-        char symbol1 = str1[pos];
-        char symbol2 = str2[pos];
-
-        if ('A' <= symbol1 && symbol1 <= 'Z') {
-            symbol1 += 32;
-        }
-        if ('A' <= symbol2 && symbol2 <= 'Z') {
-            symbol2 += 32;
-        }
-
-        if (symbol1 != symbol2) {
-            return (symbol1 > symbol2) ? (1) : (-1);
-        }
-        pos++;
-    }
-
-    if (str1[pos] == '\0' && str2[pos] == '\0') {
-        return 0;
-    }
-
-    return (str1[pos] == '\0') ? (-1) : (1);
-}
-
-void output_sorted_onegin(char *text[], size_t size) {
-    assert(text != NULL);
-
-    FILE *file = open_file("SortedOnegin.txt", "w");
-    if (file == NULL) {
-        perror("fopen() failed");
-    }
-
-    for (size_t pos = 0; pos < size; pos++) {
-        fprintf(file, "%s\n", text[pos]);
-    }
-
-    PossibleErrors err = close_file(file);
-    if (err != kNoError) {
-        perror("fclose() failed");
-    }
-}
-
 long long size_of_file(const char *filename) {
     assert(filename != NULL);
 
@@ -242,57 +86,90 @@ char *read_to_buf(const char *filename, FILE *file) {
 
     size_t filesize = (size_t)size_of_file(filename);
 
-    char *buf = (char *) calloc(filesize + 1, sizeof(char));
-    
-    fread(buf, sizeof(buf[0]), filesize, file);
+    char *buf_in = (char *) calloc(filesize + 2, sizeof(char));
+    assert(buf_in != NULL);
 
-    return buf;
+    size_t bytes_read = fread(buf_in, sizeof(buf_in[0]), filesize, file);
+    if (bytes_read == 0) {
+        buf_in[0] = '\n';
+        buf_in[1] = '\0';
+    } else {
+        if (buf_in[bytes_read - 1] != '\n') {
+            buf_in[bytes_read] = '\n';
+            bytes_read++;
+        }
+
+        buf_in[bytes_read] = '\0';
+    }
+
+    return buf_in;
 }
 
-void parse_buf(char *buf, char **text_ptr) {
+size_t parse_buf(char *buf, struct LineInfo *text_ptr) {
     assert(buf      != NULL);
     assert(text_ptr != NULL);
 
-    size_t index_line = 0;
-    //int cnt = 0;
-    char *start = buf;
-    while (index_line < FILESIZE && *start) {
-        char *end = strchr(start, '\n');
-        if (!end) {
-            end = start + strlen(start);
+    size_t line_idx = 0;
+    char *line_start = buf;
+    char *alpha_start = NULL;
+    char *alpha_end = NULL;
+
+    size_t bufsize = (size_t)size_of_file("textonegin.txt") + 1;
+    //printf("%zu\n", bufsize);
+    for (size_t i = 0; i <= bufsize; i++) {
+        char c = buf[i];
+        int end_of_buffer = (i == bufsize);
+        int end_of_line = (c == '\n' || end_of_buffer);
+
+        if (!end_of_line) {
+            if (isalpha((unsigned char)c)) {
+                if (alpha_start == NULL) {
+                    alpha_start = &buf[i];
+                }
+
+                alpha_end = &buf[i];
+            }
         }
-        
-        size_t len = end - start;
-        text_ptr[index_line] = (char *)calloc(len + 1, sizeof (char));
 
-        memcpy(text_ptr[index_line], start, len);
-        text_ptr[index_line][len] = '\0';
-        index_line++;
+        if (end_of_line) {
+            if (line_idx >= FILESIZE) {
+                break;
+            }
 
-        if (*end == '\n') {
-            start = end + 1;
-        } else {
-            break;
+            text_ptr[line_idx].start_ptr = line_start;
+            text_ptr[line_idx].end_ptr = &buf[i - 1];
+
+            text_ptr[line_idx].start_ptr_alpha = alpha_start;
+            text_ptr[line_idx].end_ptr_alpha = alpha_end;
+
+            text_ptr[line_idx].size = &buf[i - 1] - line_start + 1;
+
+            line_idx++;
+
+            line_start = &buf[i + 1];
+            alpha_start = NULL;
+            alpha_end = NULL;
         }
     }
+    return line_idx;
 }
 
-PossibleErrors buf_input(const char *filename, char **text_ptr) {
+PossibleErrors buf_input(const char *filename, struct LineInfo *text_ptr, char **buf_ptr, size_t *line_count) {
     assert(filename != NULL);
     assert(text_ptr != NULL);
 
     FILE *file = open_file(filename, "r");
     if (file == NULL) {
         perror("fopen() failed");
-        return kErrorOpening; //?
+        return kErrorOpening;
     }
 
-    char *buf = read_to_buf(filename, file);
-    assert(buf != NULL);
+    *buf_ptr = read_to_buf(filename, file);
+    assert(buf_ptr != NULL);
 
-    parse_buf(buf, text_ptr);
+    *line_count = parse_buf(*buf_ptr, text_ptr);
 
-    free(buf);
+    //free(buf);
 
     int err = close_file(file);
     if (err != kNoError) {
@@ -303,30 +180,45 @@ PossibleErrors buf_input(const char *filename, char **text_ptr) {
     return kNoError;
 }
 
-void output_with_buf(char **text_ptr, FILE *file) {
+void output_with_buf(struct LineInfo *text_ptr, FILE *file) {
     assert(text_ptr != NULL);
     assert(file     != NULL);
 
     size_t filesize = (size_t)size_of_file("textonegin.txt");
-    char *buf = (char *) calloc(filesize + 5333, sizeof(char)); //размер подумать еще
-    char *ptr = buf;
-    for (size_t i = 0; i < FILESIZE; i++) { //
-        size_t len = strlen(text_ptr[i]);
+    char *buf_out = (char *) calloc(filesize + 5333, sizeof(char)); //размер подумать еще
+    assert(buf_out != NULL);
+    char *ptr = buf_out;
 
-        memcpy(ptr, text_ptr[i], len);
-        ptr += len;
+    for (size_t i = 0; i < FILESIZE; i++) { //
+
+        memcpy(ptr, text_ptr[i].start_ptr, text_ptr[i].size);
+        ptr += text_ptr[i].size;
         *ptr = '\n';
         ptr++;
     }
     *ptr = '\0';
 
-    size_t size = strlen(buf);
+    size_t size = strlen(buf_out);
 
-    size_t status = fwrite(buf, sizeof(char), size, file);
+    size_t status = fwrite(buf_out, sizeof(char), size, file);
     if (status != size) {
-        perror("fwrite failed");
+        perror("fwrite() failed");
     }
 
-    fclose(file);
-    free(buf);
+    //fclose(file);
+    free(buf_out);
 } 
+
+void output_original_text(FILE *file, char *buf) {
+    assert(file != NULL);
+
+    size_t size = strlen(buf);
+
+    fwrite(buf, sizeof(char), size, file);
+
+    //free(buf);
+    fclose(file);
+
+}
+//TODO добавить ассертов
+//TODO tolower

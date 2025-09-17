@@ -2,44 +2,18 @@
 #define FILE_OPERATIONS_H_
 
 #include <stdio.h>
+#include "ConstantsAndStructs.h"
 
-#ifndef FILESIZE
-#define FILESIZE 5332
-#endif
-
-#ifndef STROKESIZE
-#define STROKESIZE 48
-#endif
-
-enum PossibleErrors {
-    kNoError      = 0,
-    kErrorOpening = -1,
-    kErrorClosing = -2,
-};
+int pointers_text(struct LineInfo *text_ptr);
 
 FILE *open_file(const char *filename, const char *mode);
 PossibleErrors close_file(FILE *file);
 
-void swap_lines_with_copies(char *text1, char *text2);
-int swap_lines_with_char(char text[][STROKESIZE], size_t pos1, size_t pos2);
-void swap_two_chars(char *char1, char *char2);
-void swap_pointers(char **ptr1, char **ptr2);
-void swap_all_with_char(char text[][STROKESIZE]);
-void sort_with_strcpy(char text[][STROKESIZE]);
-void swap_blocks(char *text1, char *text2, size_t n);
-void swap_all_with_pointers(char *text[]);
-int Mstrcmp(const char *str1, const char *str2);
-
-size_t partition(char *text[], size_t l, size_t r);
-void quick_sort(char *text[], size_t l, size_t r);
-//static inline void swap_pointers(char **a, char **b);
-
-void output_sorted_onegin(char *text[], size_t size);
-
 long long size_of_file(const char *filename);
 char *read_to_buf(const char *filename, FILE *file);
-void parse_buf(char *buf, char **text_ptr);
-PossibleErrors buf_input(const char *filename, char **text_ptr);
-void output_with_buf(char **text_ptr, FILE *file);
+size_t parse_buf(char *buf, struct LineInfo *text_ptr);
+PossibleErrors buf_input(const char *filename, struct LineInfo *text_ptr, char **buf_ptr, size_t *line_count);
+void output_with_buf(struct LineInfo *text_ptr, FILE *file);
+void output_original_text(FILE *file, char *buf);
 
 #endif //FILE_OPERATIONS_H_
