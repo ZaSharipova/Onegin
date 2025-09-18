@@ -4,10 +4,20 @@
 
 #include "FileOperations.h"
 
-int main(void) {
+int main(int argc, char *argv[]) {
+    TypesOfSort sort_mode = qsorting;
+    PossibleErrors err = parse_argv(argc, argv, &sort_mode);
+    if (err != kNoError) {
+        return err;
+    }
+
     struct LineInfo *text_ptr = (struct LineInfo *) calloc(LINECOUNT + 1, sizeof(LineInfo));
     
-    int err = pointers_text(text_ptr);
+    err = handle_all_sort(text_ptr, sort_mode);
+    if (err != kNoError) {
+        return err;
+    }
+
     free(text_ptr);
-    return err;
+    return kNoError;
 }

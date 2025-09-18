@@ -44,7 +44,7 @@ int partition(struct LineInfo *text_ptr, int left, int right, int (*compares)(co
             right--;
         }
     }
-    assert(left < LINECOUNT);
+
     return left;
 
 }
@@ -58,12 +58,9 @@ void quick_sort(struct LineInfo *text_ptr, int left, int right, int (*compares)(
     }
 
     assert(right - 1 < LINECOUNT);
-    int sep = 0;
-    if (right > 0) {
-        sep = partition(text_ptr, left, right - 1, compares);
-        quick_sort(text_ptr, left, sep, compares);
-        quick_sort(text_ptr, sep, right, compares);
-    }
+    int sep = partition(text_ptr, left, right - 1, compares);
+    quick_sort(text_ptr, left, sep, compares);
+    quick_sort(text_ptr, sep, right, compares);
 }
 
 // void quick_sort_modified(char *text[], size_t left, size_t right, struct limits ) {
@@ -77,97 +74,89 @@ void quick_sort(struct LineInfo *text_ptr, int left, int right, int (*compares)(
 //     quick_sort(text, sep, right);
 // }
 
-void bubble_sort(LineInfo *text_ptr) {
+void bubble_sort(LineInfo *text_ptr, int (*compares)(const void *, const void *)) {
     assert(text_ptr != NULL);
 
     int sorted = 0;
-    for (size_t i = 0; i < 5331; i++) {
-        for (size_t j = 0; j < 5331 - i; j++) {
-            if (compare_RtoL(&text_ptr[j], &text_ptr[j + 1]) > 0) {
-                swap_lineinfo(&text_ptr[j], &text_ptr[j + 1]);
+
+    for (size_t i = 0; i < LINECOUNT - 1; i++) {
+        for (size_t pos = 0; pos < LINECOUNT - i - 1; pos++) {
+            if (compares(&text_ptr[pos], &text_ptr[pos + 1]) > 0) {
+                swap_lineinfo(&text_ptr[pos], &text_ptr[pos + 1]);
                 sorted = 1;
             }
         }
+
         if (sorted == 0) {
             break;
         }
     }
 }
 
-int Mstrcmp_LtoR(char *str1, char *str2, char *end_ptr1, char *end_ptr2) {
-    assert(str1     != NULL);
-    assert(str2     != NULL);
-    assert(end_ptr1 != NULL);
-    assert(end_ptr2 != NULL);
+int Mstrcmp_ltor(char *start_ptr1, char *start_ptr2, char *end_ptr1, char *end_ptr2) {
+    assert(start_ptr1 != NULL);
+    assert(start_ptr2 != NULL);
+    assert(end_ptr1   != NULL);
+    assert(end_ptr2   != NULL);
 
-    while (str1 <= end_ptr1 && str2 <= end_ptr2) {
-        char symbol1 = (char)tolower(*str1);
-        char symbol2 = (char)tolower(*str2);
+    while (start_ptr1 <= end_ptr1 && start_ptr2 <= end_ptr2) {
+        char symbol1 = (char)tolower(*start_ptr1);
+        char symbol2 = (char)tolower(*start_ptr2);
 
         if (symbol1 != symbol2) {
             return (symbol1 > symbol2) ? (1) : (-1);
         }
 
-        str1++, str2++;
+        start_ptr1++, start_ptr2++;
     }
 
-    if (str1 > end_ptr1 && str2 > end_ptr2) {
+    if (start_ptr1 > end_ptr1 && start_ptr2 > end_ptr2) {
         return 0;
     }
 
-    return ((str1 > end_ptr1) ? (-1) : (1));
+    return ((start_ptr1 > end_ptr1) ? (-1) : (1));
 }
 
-int Mstrcmp_RtoL(char *str1, char *str2, char *start_ptr1, char *start_ptr2) {
-    assert(str1       != NULL);
-    assert(str2       != NULL);
+int Mstrcmp_rtol(char *end_ptr1, char *end_ptr2, char *start_ptr1, char *start_ptr2) { //TODO подумать над названиями
+    assert(end_ptr1   != NULL);
+    assert(end_ptr2   != NULL);
     assert(start_ptr1 != NULL);
     assert(start_ptr2 != NULL);
     
-    while (str1 >= start_ptr1 && str2 >= start_ptr2) {
-        char symbol1 = (char)tolower(*str1);
-        char symbol2 = (char)tolower(*str2);
+    while (end_ptr1 >= start_ptr1 && end_ptr2 >= start_ptr2) {
+        char symbol1 = (char)tolower(*end_ptr1);
+        char symbol2 = (char)tolower(*end_ptr2);
 
         if (symbol1 != symbol2) {
             return (symbol1 > symbol2) ? (1) : (-1);
         }
 
-        str1--, str2--;
+        end_ptr1--, end_ptr2--;
     }
 
-    if (str1 < start_ptr1 && str2 < start_ptr2) {
+    if (end_ptr1 < start_ptr1 && end_ptr2 < start_ptr2) {
         return 0;
     }
 
-    return (str1 < start_ptr1) ? (-1) : (1);
+    return (end_ptr1 < start_ptr1) ? (-1) : (1);
 }
 
-int compare_LtoR(const void *a, const void *b) {
-    assert(a != NULL);
-    assert(b != NULL);
+int compare_ltor(const void *text1, const void *text2) {
+    assert(text1 != NULL);
+    assert(text2 != NULL);
     
-    const LineInfo *A = (const LineInfo *) a;
-    const LineInfo *B = (const LineInfo *) b;
+    const LineInfo *Arr1 = (const LineInfo *) text1;
+    const LineInfo *Arr2 = (const LineInfo *) text2;
 
-    return Mstrcmp_LtoR(A->start_ptr_alpha, B->start_ptr_alpha, A->end_ptr, B->end_ptr);
+    return Mstrcmp_ltor(Arr1->start_ptr_alpha, Arr2->start_ptr_alpha, Arr1->end_ptr, Arr2->end_ptr);
 }
 
-int compare_RtoL(const void *a, const void *b) {
-    assert(a != NULL);
-    assert(b != NULL);
+int compare_rtol(const void *text1, const void *text2) {
+    assert(text1 != NULL);
+    assert(text2 != NULL);
+    
+    const LineInfo *Arr1 = (const LineInfo *) text1;
+    const LineInfo *Arr2 = (const LineInfo *) text2;
 
-    const LineInfo *A = (const LineInfo *) a;
-    const LineInfo *B = (const LineInfo *) b;
-
-    return Mstrcmp_RtoL(A->end_ptr_alpha, B->end_ptr_alpha, A->start_ptr, B->start_ptr);
-}
-
-int compare_bubble_LtoR(const void *a, const void *b) {
-    assert(a != NULL);
-    assert(b != NULL);
-
-    const LineInfo *A = (const LineInfo *) a;
-    const LineInfo *B = (const LineInfo *) b;
-
-    return Mstrcmp_RtoL(A->start_ptr_alpha, B->start_ptr_alpha, A->end_ptr, B->end_ptr);
+    return Mstrcmp_rtol(Arr1->end_ptr_alpha, Arr2->end_ptr_alpha, Arr1->start_ptr, Arr2->start_ptr);
 }
