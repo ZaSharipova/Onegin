@@ -18,7 +18,7 @@ int partition(struct LineInfo *text_ptr, int left, int right, int (*compares)(co
     assert(text_ptr != NULL);
     assert(compares != NULL);
 
-    int mid = (left + right) / 2;
+    int mid = rand_index(left, right);
     LineInfo pivot = text_ptr[mid];
     assert(mid < LINECOUNT);
 
@@ -59,8 +59,18 @@ void quick_sort(struct LineInfo *text_ptr, int left, int right, int (*compares)(
 
     assert(right - 1 < LINECOUNT);
     int sep = partition(text_ptr, left, right - 1, compares);
-    quick_sort(text_ptr, left, sep, compares);
-    quick_sort(text_ptr, sep, right, compares);
+
+    if (sep - left > 1) {
+        quick_sort(text_ptr, left, sep, compares);
+    } else {
+        compare_two_pointers(&text_ptr[left], &text_ptr[sep - 1], compares);
+    }
+
+    if (right - sep > 1) {
+        quick_sort(text_ptr, sep, right, compares);
+    } else {
+        compare_two_pointers(&text_ptr[sep], &text_ptr[right - 1], compares);
+    }
 }
 
 // void quick_sort_modified(char *text[], size_t left, size_t right, struct limits ) {
@@ -76,6 +86,7 @@ void quick_sort(struct LineInfo *text_ptr, int left, int right, int (*compares)(
 
 void bubble_sort(LineInfo *text_ptr, int (*compares)(const void *, const void *)) {
     assert(text_ptr != NULL);
+    assert(compares != NULL);
 
     int sorted = 0;
 
@@ -90,6 +101,23 @@ void bubble_sort(LineInfo *text_ptr, int (*compares)(const void *, const void *)
         if (sorted == 0) {
             break;
         }
+    }
+}
+
+void insertion_sort(LineInfo *text_ptr, int right, int (*compares)(const void *, const void *)) {
+    assert(text_ptr != NULL);
+    assert(compares != NULL);
+    
+    for (int i = 1; i < right; i++) {
+        LineInfo compared_str = text_ptr[i];
+        int j = i - 1;
+
+        while (j >= 0 && compares(&compared_str, &text_ptr[j]) < 0) {
+            text_ptr[j + 1] = text_ptr[j];
+            j--;
+        }
+
+        text_ptr[j + 1] = compared_str;
     }
 }
 
@@ -117,7 +145,7 @@ int Mstrcmp_ltor(char *start_ptr1, char *start_ptr2, char *end_ptr1, char *end_p
     return ((start_ptr1 > end_ptr1) ? (-1) : (1));
 }
 
-int Mstrcmp_rtol(char *end_ptr1, char *end_ptr2, char *start_ptr1, char *start_ptr2) { //TODO подумать над названиями
+int Mstrcmp_rtol(char *end_ptr1, char *end_ptr2, char *start_ptr1, char *start_ptr2) {
     assert(end_ptr1   != NULL);
     assert(end_ptr2   != NULL);
     assert(start_ptr1 != NULL);
@@ -159,4 +187,17 @@ int compare_rtol(const void *text1, const void *text2) {
     const LineInfo *Arr2 = (const LineInfo *) text2;
 
     return Mstrcmp_rtol(Arr1->end_ptr_alpha, Arr2->end_ptr_alpha, Arr1->start_ptr, Arr2->start_ptr);
+}
+
+int rand_index(int left, int right) {
+    return left + (rand() % (right - left + 1));
+}
+
+void compare_two_pointers(LineInfo *str1, LineInfo *str2, int (*compare)(const void *, const void *)) {
+    assert(str1 != NULL);
+    assert(str2 != NULL);
+
+    if (compare(str1, str2) < 0) {
+        swap_lineinfo(str1, str2);
+    }
 }

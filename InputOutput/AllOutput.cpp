@@ -23,7 +23,7 @@ PossibleErrors output_with_buf(struct LineInfo *text_ptr, FILE *file, size_t fil
     }
     *ptr = '\0';
 
-    size_t size = strlen(buf_out);
+    size_t size = strlen(buf_out); //
 
     size_t status = fwrite(buf_out, sizeof(char), size, file);
     if (status != size) {
@@ -46,27 +46,31 @@ PossibleErrors output_original_text(FILE *file, char *buf) {
         return kErrorWrite;
     }
 
-    fclose(file);
     return kNoError;
 }
 
-void output_all_ltor(FILE *file, LineInfo *text_ptr, size_t filesize) {
+void output_all(FILE *file, LineInfo *text_ptr, size_t filesize, CompareTypes compare_mode) {
     assert(file     != NULL);
     assert(text_ptr != NULL);
 
-    print_sorted_LtoR_label(file);
+    if (compare_mode == Global_direct) {
+        print_sorted_LtoR_label(file);
+        printf("Sorting  1 done. It is from line %d\n", 4);
+    } else {
+        print_sorted_RtoL_label(file);
+        printf("Sorting  2 done. You can see it from line %d\n", LINECOUNT + 7);
+    }
     output_with_buf(text_ptr, file, filesize);
-    printf("Sorting  1 done. It is from line %d\n", 4);
 }
 
-void output_all_rtol(FILE *file, LineInfo *text_ptr, size_t filesize) {
-    assert(file     != NULL);
-    assert(text_ptr != NULL);
+// void output_all_rtol(FILE *file, LineInfo *text_ptr, size_t filesize) {
+//     assert(file     != NULL);
+//     assert(text_ptr != NULL);
 
-    print_sorted_RtoL_label(file);
-    output_with_buf(text_ptr, file, filesize);
-    printf("Sorting  2 done. You can see it from line %d\n", LINECOUNT + 7);
-}
+//     print_sorted_RtoL_label(file);
+//     output_with_buf(text_ptr, file, filesize);
+//     printf("Sorting  2 done. You can see it from line %d\n", LINECOUNT + 7);
+// }
 
 void output_original(FILE *file, char *buf_ptr) {
     assert(file != NULL);

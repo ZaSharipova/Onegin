@@ -5334,7 +5334,7 @@ Zaretski, once a bully bold,
 Zaretski, village mechanician,
 Zizi, thou mirror of my mind,
 ---------------------------------------------
-          Sorted LtoR Onegin:
+           Sorted RtoL Onegin:
 ---------------------------------------------
 Nor Byron, Walter Scott, nor Seneca,
 Fair source of every fine idea,

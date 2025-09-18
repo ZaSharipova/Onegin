@@ -3,21 +3,22 @@
 #include <string.h>
 
 #include "FileOperations.h"
+#include "AllInput.h"
 
 int main(int argc, char *argv[]) {
-    TypesOfSort sort_mode = qsorting;
-    PossibleErrors err = parse_argv(argc, argv, &sort_mode);
+    const char *filename_in = "textonegin.txt";
+    const char *filename_out = "SortedOnegin.txt";
+
+    TypesOfSort sort_mode = Global_qsorting;
+    PossibleErrors err = parse_argv(argc, argv, &sort_mode, &filename_in, &filename_out);
     if (err != kNoError) {
         return err;
     }
-
-    struct LineInfo *text_ptr = (struct LineInfo *) calloc(LINECOUNT + 1, sizeof(LineInfo));
     
-    err = handle_all_sort(text_ptr, sort_mode);
+    err = handle_all_sort(sort_mode, filename_in, filename_out);
     if (err != kNoError) {
         return err;
     }
 
-    free(text_ptr);
     return kNoError;
 }
