@@ -9,60 +9,25 @@
 #include "AllInput.h"
 #include "AllOutput.h"
 
-PossibleErrors check_sort_mode(char *str, TypesOfSort *type) {
-    assert(str  != NULL);
-    assert(type != NULL);
-
-    if (strcmp(str, "qsort") == 0) {
-        *type = Global_qsorting;
-
-    } else {
-        if (strcmp(str, "bubble_sort") == 0) {
-            *type = Global_bubble_sorting;
-
-        } else {
-            if (strcmp(str, "quick_sort") == 0) {
-                *type = Global_quick_sorting;
-
-
-            } else {
-                if (strcmp(str, "insertion_sort") == 0) {
-                    *type = Global_quick_sorting;
-                
-                } else {
-                    printf("Not possible sorting mode chosen.\n");
-                    
-                    return kErrorWrongMode;
-                }
-            }
-        }
-    }
-
-    return kNoError;
-}
-
-PossibleErrors handle_all_sort(TypesOfSort sorting_type, const char *filename_in, const char *filename_out) {
-    assert(filename_in != NULL);
+PossibleErrors handle_all_sort(char *buf_ptr, LineInfo *text_ptr, TypesOfSort sorting_type, const char *filename_in, const char *filename_out, size_t line_count) {
+    assert(filename_in  != NULL);
     assert(filename_out != NULL);
+    assert(buf_ptr      != NULL);
+    assert(text_ptr     != NULL);
 
-    char *buf_ptr = NULL;
-    size_t line_count = 0;;
-    size_t filesize = (size_t)size_of_file(filename_in);
-    assert(filesize);
 
-    struct LineInfo *pointer;
-    buf_input(filename_in, &pointer, &buf_ptr, &line_count, filesize);
+    FILE *file = open_file(filename_out, WRITE_MODE);
 
-    FILE *file = fopen(filename_out, WRITE_MODE);
+    handle_switch_sort(text_ptr, sorting_type, (int)line_count, compare_ltor);
+    output_all(file, text_ptr, Global_direct, (int)line_count);
 
-    handle_switch_sort(pointer, sorting_type, (int)line_count, compare_ltor);
-    output_all(file, pointer, filesize, Global_direct);
-
-    handle_switch_sort(pointer, sorting_type, (int)line_count, compare_rtol);
-    output_all(file, pointer, filesize, Global_reverse);
+    handle_switch_sort(text_ptr, sorting_type, (int)line_count, compare_rtol);
+    output_all(file, text_ptr, Global_reverse, (int)line_count);
 
     output_original(file, buf_ptr);
 
+    //output_sorted_lines(pointer, file, (int)line_count);
+    
     PossibleErrors status = close_file(file);
     if (status != kNoError) {
         perror("fclse() failed");
@@ -70,7 +35,6 @@ PossibleErrors handle_all_sort(TypesOfSort sorting_type, const char *filename_in
     }
 
     free(buf_ptr);
-    free(pointer);
 
     return kNoError;
 }
@@ -81,7 +45,7 @@ void handle_switch_sort(LineInfo *text_ptr, TypesOfSort sorting_type, int line_c
 
     switch(sorting_type) {
     case (Global_qsorting):
-        qsort(text_ptr, LINECOUNT, sizeof(LineInfo), compares);
+        qsort(text_ptr, line_count, sizeof(LineInfo), compares);
         break;
 
     case (Global_bubble_sorting):
@@ -93,7 +57,7 @@ void handle_switch_sort(LineInfo *text_ptr, TypesOfSort sorting_type, int line_c
         break;
 
     case (Global_insertion_sorting):
-        insertion_sort(text_ptr, line_count, compares);
+        insertion_sort(text_ptr, 0, line_count, compares);
         break;
 
     default:
@@ -146,6 +110,7 @@ size_t count_lines(char *buf_ptr) {
 
     size_t counter = 0;
     char *ptr = buf_ptr;
+
     while ((ptr = (strchr(ptr, '\n'))) != NULL) {
         counter++;
         ptr++;
