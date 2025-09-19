@@ -83,8 +83,8 @@ size_t parse_buf(char *buf, struct LineInfo *text_ptr, size_t bufsize) {
 }
 
 PossibleErrors buf_input(const char *filename, char **buf_ptr, size_t *line_count, size_t *filesize) {
-    assert(filename  != NULL);
-    assert(buf_ptr   != NULL);
+    assert(filename   != NULL);
+    assert(buf_ptr    != NULL);
     assert(line_count != NULL);
 
     FILE *file = open_file(filename, READ_MODE);

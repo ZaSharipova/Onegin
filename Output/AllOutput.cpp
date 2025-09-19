@@ -6,7 +6,7 @@
 
 #include "AllOutputText.h"
 
-PossibleErrors output_sorted_lines( FILE *file, LineInfo *text_ptr, int line_count) {
+PossibleErrors output_sorted_lines(FILE *file, struct LineInfo *text_ptr, int line_count) {
     assert(text_ptr != NULL);
     assert(file     != NULL);
 
@@ -16,15 +16,16 @@ PossibleErrors output_sorted_lines( FILE *file, LineInfo *text_ptr, int line_cou
     return kNoError;
 }
 
-PossibleErrors output_with_buf(LineInfo *text_ptr, FILE *file, size_t filesize) {
+PossibleErrors output_with_buf(struct LineInfo *text_ptr, FILE *file, size_t filesize, int line_count) {
     assert(text_ptr != NULL);
     assert(file     != NULL);
 
-    char *buf_out = (char *) calloc(filesize + LINECOUNT + 1, sizeof(char));
+    size_t size = filesize + (size_t)line_count + 1;
+    char *buf_out = (char *) calloc(size, sizeof(char));
     assert(buf_out != NULL);
-    char *ptr = buf_out;
+    char *ptr = buf_out; 
 
-    for (size_t pos = 0; pos < LINECOUNT; pos++) {
+    for (size_t pos = 0; pos < (size_t)line_count; pos++) {
 
         memcpy(ptr, text_ptr[pos].start_ptr, text_ptr[pos].size);
         ptr += text_ptr[pos].size;
@@ -32,8 +33,6 @@ PossibleErrors output_with_buf(LineInfo *text_ptr, FILE *file, size_t filesize) 
         ptr++;
     }
     *ptr = '\0';
-
-    size_t size = strlen(buf_out); //
 
     size_t status = fwrite(buf_out, sizeof(char), size, file);
     if (status != size) {
@@ -59,7 +58,7 @@ PossibleErrors output_original_text(FILE *file, char *buf) {
     return kNoError;
 }
 
-void output_all(FILE *file, LineInfo *text_ptr, CompareTypes compare_mode, int line_count) {
+void output_all(FILE *file, struct LineInfo *text_ptr, CompareTypes compare_mode, int line_count) {
     assert(file     != NULL);
     assert(text_ptr != NULL);
 

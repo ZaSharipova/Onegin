@@ -53,55 +53,128 @@ void quick_sort(struct LineInfo *text_ptr, int left, int right, int (*compares)(
     assert(text_ptr != NULL);
     assert(compares != NULL);
 
-    int size = right - left;
+    int dist = right - left;
 
-    if (size <= 1) {
+    switch(dist) {
+    case (0):
+    case (1):
         return;
 
-    } else {
-        if (size == 2) {
-            compare_two_pointers(&text_ptr[left], &text_ptr[left + 1], compares);
-            return;
+    case (2):
+        compare_two_pointers(&text_ptr[left], &text_ptr[left + 1], compares);
+        break;
+
+    case (3):
+        compare_three_pointers(text_ptr, left, right - 1, compares);
+        break;
+
+    case (4):
+    case (5):
+    case (6):
+    case (7):
+        insertion_sort(text_ptr, left, right, compares);
+        break;
+
+    default:
+        assert(right - 1 < LINECOUNT);
+        int sep = partition(text_ptr, left, right - 1, compares);
+        quick_sort(text_ptr, left, sep, compares);
+        quick_sort(text_ptr, sep, right, compares);
+    }
+
+    // if (size <= 1) {
+    //     return;
+
+    // } else {
+    //     if (size == 2) {
+    //         compare_two_pointers(&text_ptr[left], &text_ptr[left + 1], compares);
+    //         return;
             
-        } else {
-            if (size == 3) {
-                compare_three_pointers(text_ptr, left, right - 1, compares);
-                return;
+    //     } else {
+    //         if (size == 3) {
+    //             compare_three_pointers(text_ptr, left, right - 1, compares);
+    //             return;
 
-            } else {
-                if (size >= 4 && size <= 7) {
-                    insertion_sort(text_ptr, left, right, compares);
-                    return;
-                } 
-            }
-        }
-    } 
+    //         } else {
+    //             if (size >= 4 && size <= 7) {
+    //                 insertion_sort(text_ptr, left, right, compares);
+    //                 return;
+    //             } 
+    //         }
+    //     }
+    // } 
 
-    assert(right - 1 < LINECOUNT);
-    int sep = partition(text_ptr, left, right - 1, compares);
-    quick_sort(text_ptr, left, sep, compares);
-    quick_sort(text_ptr, sep, right, compares);
+    // assert(right - 1 < LINECOUNT);
+    // int sep = partition(text_ptr, left, right - 1, compares);
+    // quick_sort(text_ptr, left, sep, compares);
+    // quick_sort(text_ptr, sep, right, compares);
 }
 
-// void quick_sort_modified(char *text[], size_t left, size_t right, struct limits ) {
-//     if (left + 1 >= right) {
-//         return;
-//     }
+void quick_sort_with_stack(struct LineInfo *text_ptr, int line_count, int left_border, int right_border, int (*compares)(const void*, const void*)) {
+    assert(text_ptr != NULL);
+    assert(compares != NULL);
 
-//     size_t sep = partition(text, left, right - 1);
-    
-//     quick_sort(text, left, sep);
-//     quick_sort(text, sep, right);
-// }
+    SortBorders *stack = (SortBorders *) calloc ((size_t)line_count, sizeof(SortBorders));
+    int stack_size = line_count;
+    int top = 0;
 
-void bubble_sort(LineInfo *text_ptr, int (*compares)(const void *, const void *)) {
+    stack[top].left = left_border;
+    stack[top].right = right_border;
+
+    while (top >= 0) {
+        int left = stack[top].left;
+        int right = stack[top].right;
+        top--;
+
+        int dist = right - left;
+
+        if (dist <= 1) {
+            continue;
+
+        } else if (dist == 2) {
+            compare_two_pointers(&text_ptr[left], &text_ptr[left + 1], compares);
+            continue;
+
+        } else if (dist == 3) {
+            compare_three_pointers(text_ptr, left, right - 1, compares);
+            continue;
+
+        } else if (4 <= dist && dist <= 7) {
+            insertion_sort(text_ptr, left, right, compares);
+            continue;
+        }
+        
+        int sep = partition(text_ptr, left, right - 1, compares);
+
+        if (sep > left) {
+            top++;
+            if (top > stack_size) {
+                stack = (SortBorders *) realloc (stack, (size_t)stack_size + 1);
+                stack_size++;
+            }
+
+            stack[top].left = left;
+            stack[top].right = sep;
+        }
+
+        if (right > sep) {
+            top++;
+            stack[top].left = sep;
+            stack[top].right = right;
+        }
+    }
+
+    free(stack);
+}
+
+void bubble_sort(struct LineInfo *text_ptr, int line_count, int (*compares)(const void *, const void *)) {
     assert(text_ptr != NULL);
     assert(compares != NULL);
 
     int sorted = 0;
 
-    for (size_t i = 0; i < LINECOUNT - 1; i++) {
-        for (size_t pos = 0; pos < LINECOUNT - i - 1; pos++) {
+    for (int i = 0; i < line_count - 1; i++) {
+        for (int pos = 0; pos < line_count - i - 1; pos++) {
             if (compares(&text_ptr[pos], &text_ptr[pos + 1]) > 0) {
                 swap_lineinfo(&text_ptr[pos], &text_ptr[pos + 1]);
                 sorted = 1;
@@ -114,7 +187,7 @@ void bubble_sort(LineInfo *text_ptr, int (*compares)(const void *, const void *)
     }
 }
 
-void insertion_sort(LineInfo *text_ptr, int left, int right, int (*compares)(const void *, const void *)) {
+void insertion_sort(struct LineInfo *text_ptr, int left, int right, int (*compares)(const void *, const void *)) {
     assert(text_ptr != NULL);
     assert(compares != NULL);
     
@@ -145,7 +218,8 @@ int Mstrcmp_ltor(char *start_ptr1, char *start_ptr2, char *end_ptr1, char *end_p
             return (symbol1 > symbol2) ? (1) : (-1);
         }
 
-        start_ptr1++, start_ptr2++;
+        start_ptr1++;
+        start_ptr2++;
     }
 
     if (start_ptr1 > end_ptr1 && start_ptr2 > end_ptr2) {
@@ -199,11 +273,7 @@ int compare_rtol(const void *text1, const void *text2) {
     return Mstrcmp_rtol(Arr1->end_ptr_alpha, Arr2->end_ptr_alpha, Arr1->start_ptr, Arr2->start_ptr);
 }
 
-int rand_index(int left, int right) {
-    return left + (rand() % (right - left + 1));
-}
-
-void compare_two_pointers(LineInfo *str1, LineInfo *str2, int (*compare)(const void *, const void *)) {
+void compare_two_pointers(struct LineInfo *str1, struct LineInfo *str2, int (*compare)(const void *, const void *)) {
     assert(str1 != NULL);
     assert(str2 != NULL);
 
@@ -212,12 +282,13 @@ void compare_two_pointers(LineInfo *str1, LineInfo *str2, int (*compare)(const v
     }
 }
 
-void compare_three_pointers(LineInfo *text_ptr, int left, int right, int (*compares)(const void *, const void *)) {
+void compare_three_pointers(struct LineInfo *text_ptr, int left, int right, int (*compares)(const void *, const void *)) {
     assert(text_ptr != NULL);
     assert(compares != NULL);
 
-    if (compares(&text_ptr[left], &text_ptr[left + 1]) > 0)
+    if (compares(&text_ptr[left], &text_ptr[left + 1]) > 0) {
         swap_lineinfo(&text_ptr[left], &text_ptr[left + 1]);
+    }
 
     if (compares(&text_ptr[left + 1], &text_ptr[right]) > 0) {
         swap_lineinfo(&text_ptr[left + 1], &text_ptr[right]);
@@ -226,4 +297,8 @@ void compare_three_pointers(LineInfo *text_ptr, int left, int right, int (*compa
             swap_lineinfo(&text_ptr[left], &text_ptr[left + 1]);
         }
     }
+}
+
+int rand_index(int left, int right) {
+    return left + (rand() % (right - left + 1));
 }

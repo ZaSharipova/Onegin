@@ -7,7 +7,7 @@
 #include "AllInput.h"
 
 int main(int argc, char *argv[]) {
-    const char *filename_in = "textonegin.txt";
+    const char *filename_in = "TextOnegin.txt";
     const char *filename_out = "SortedOnegin.txt";
     TypesOfSort sort_mode = Global_qsorting;
 
@@ -32,14 +32,16 @@ int main(int argc, char *argv[]) {
 
     err = handle_parse_buf(text_ptr, buf_ptr, filesize, file);
     if (err != kNoError) {
+        free(text_ptr);
         return err;
     }
 
     err = handle_all_sort(buf_ptr, text_ptr, sort_mode, filename_in, filename_out, line_count);
     if (err != kNoError) {
+        free(text_ptr);
         return err;
     }
-//закрыть фацл
+
     free(text_ptr);
 
     return kNoError;

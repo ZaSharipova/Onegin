@@ -45,4 +45,9 @@ enum CompareTypes {
     Global_reverse,
 };
 
+struct SortBorders {
+    int left;
+    int right;
+};
+
 #endif //CONSTANTS_AND_STRUCTS_H_

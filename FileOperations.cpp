@@ -9,12 +9,11 @@
 #include "AllInput.h"
 #include "AllOutput.h"
 
-PossibleErrors handle_all_sort(char *buf_ptr, LineInfo *text_ptr, TypesOfSort sorting_type, const char *filename_in, const char *filename_out, size_t line_count) {
+PossibleErrors handle_all_sort(char *buf_ptr, struct LineInfo *text_ptr, TypesOfSort sorting_type, const char *filename_in, const char *filename_out, size_t line_count) {
     assert(filename_in  != NULL);
     assert(filename_out != NULL);
     assert(buf_ptr      != NULL);
     assert(text_ptr     != NULL);
-
 
     FILE *file = open_file(filename_out, WRITE_MODE);
 
@@ -31,6 +30,7 @@ PossibleErrors handle_all_sort(char *buf_ptr, LineInfo *text_ptr, TypesOfSort so
     PossibleErrors status = close_file(file);
     if (status != kNoError) {
         perror("fclse() failed");
+        free(buf_ptr);
         return kErrorClosing;
     }
 
@@ -39,21 +39,21 @@ PossibleErrors handle_all_sort(char *buf_ptr, LineInfo *text_ptr, TypesOfSort so
     return kNoError;
 }
 
-void handle_switch_sort(LineInfo *text_ptr, TypesOfSort sorting_type, int line_count, int (*compares)(const void *, const void *)) {
+void handle_switch_sort(struct LineInfo *text_ptr, TypesOfSort sorting_type, int line_count, int (*compares)(const void *, const void *)) {
     assert(text_ptr != NULL);
     assert(compares != NULL);
 
     switch(sorting_type) {
     case (Global_qsorting):
-        qsort(text_ptr, line_count, sizeof(LineInfo), compares);
+        qsort(text_ptr, (size_t)line_count, sizeof(LineInfo), compares);
         break;
 
     case (Global_bubble_sorting):
-        bubble_sort(text_ptr, compares);
+        bubble_sort(text_ptr, line_count, compares);
         break;
 
     case (Global_quick_sorting):
-        quick_sort(text_ptr, 0, line_count, compares);
+        quick_sort_with_stack(text_ptr, line_count, 0, line_count, compares);
         break;
 
     case (Global_insertion_sorting):
