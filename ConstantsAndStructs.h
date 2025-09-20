@@ -34,20 +34,33 @@ struct LineInfo {
 };
 
 enum TypesOfSort {
-    Global_qsorting,
-    Global_bubble_sorting,
-    Global_quick_sorting,
-    Global_insertion_sorting,
+    TypesOfSortQsort,
+    TypesOfSortBubble,
+    TypesOfSortMyQuick,
+    TypesOfSortInsertion,
 };
 
 enum CompareTypes {
-    Global_direct,
-    Global_reverse,
+    CompareTypesDirect,
+    CompareTypesReverse,
 };
 
 struct SortBorders {
     int left;
     int right;
+};
+
+struct ArgumentModes {
+    const char *filename_in;
+    const char *filename_out;
+    TypesOfSort sort_mode;
+};
+
+struct FileInfo {
+    char *buf_ptr;
+    LineInfo *text_ptr;
+    size_t filesize;
+    int count_lines;
 };
 
 #endif //CONSTANTS_AND_STRUCTS_H_

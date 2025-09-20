@@ -55,7 +55,7 @@ void quick_sort(struct LineInfo *text_ptr, int left, int right, int (*compares)(
 
     int dist = right - left;
 
-    switch(dist) {
+    switch (dist) {
     case (0):
     case (1):
         return;
@@ -115,6 +115,8 @@ void quick_sort_with_stack(struct LineInfo *text_ptr, int line_count, int left_b
     assert(compares != NULL);
 
     SortBorders *stack = (SortBorders *) calloc ((size_t)line_count, sizeof(SortBorders));
+    assert(stack != NULL);
+    
     int stack_size = line_count;
     int top = 0;
 
@@ -136,7 +138,7 @@ void quick_sort_with_stack(struct LineInfo *text_ptr, int line_count, int left_b
             continue;
 
         } else if (dist == 3) {
-            compare_three_pointers(text_ptr, left, right - 1, compares);
+            compare_three_pointers(text_ptr, left, right - 1, compares); //return ptr to func
             continue;
 
         } else if (4 <= dist && dist <= 7) {
@@ -150,6 +152,8 @@ void quick_sort_with_stack(struct LineInfo *text_ptr, int line_count, int left_b
             top++;
             if (top > stack_size) {
                 stack = (SortBorders *) realloc (stack, (size_t)stack_size + 1);
+                assert(stack != NULL);
+
                 stack_size++;
             }
 

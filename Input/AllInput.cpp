@@ -32,60 +32,55 @@ char *read_to_buf(const char *filename, FILE *file, size_t filesize) {
     return buf_in;
 }
 
-size_t parse_buf(char *buf, struct LineInfo *text_ptr, size_t bufsize) {
-    assert(buf      != NULL);
-    assert(text_ptr != NULL);
+void parse_buf(FileInfo *file_info) {
+    assert(file_info != NULL);
 
     size_t line_idx = 0;
-    char *line_start = buf;
+    char *line_start = file_info->buf_ptr;
     char *alpha_start = NULL;
     char *alpha_end = NULL;
+    size_t bufsize = file_info->filesize + 1;
 
-    bufsize++;
     for (size_t i = 0; i <= bufsize; i++) {
-        char c = buf[i];
+        char c = file_info->buf_ptr[i];
         int end_of_buffer = (i == bufsize);
         int end_of_line = (c == '\n' || end_of_buffer);
 
         if (!end_of_line) {
             if (isalpha((unsigned char)c)) {
                 if (alpha_start == NULL) {
-                    alpha_start = &buf[i];
+                    alpha_start = &(file_info->buf_ptr[i]);
                 }
 
-                alpha_end = &buf[i];
+                alpha_end = &(file_info->buf_ptr[i]);
             }
         }
 
         if (end_of_line) {
-            // if (line_idx >= LINECOUNT) {
-            //     break;
-            // }
+            long line_len = &(file_info->buf_ptr[i]) - line_start;
+            if (!is_blank_line(line_start, (size_t)line_len) && alpha_start != NULL) {
+                file_info->text_ptr[line_idx].start_ptr = line_start;
+                file_info->text_ptr[line_idx].end_ptr = &(file_info->buf_ptr[i - 1]);
 
-            text_ptr[line_idx].start_ptr = line_start;
-            text_ptr[line_idx].end_ptr = &buf[i - 1];
+                file_info->text_ptr[line_idx].start_ptr_alpha = alpha_start;
+                file_info->text_ptr[line_idx].end_ptr_alpha = alpha_end;
 
-            text_ptr[line_idx].start_ptr_alpha = alpha_start;
-            text_ptr[line_idx].end_ptr_alpha = alpha_end;
+                file_info->text_ptr[line_idx].size = 
+                (size_t)(&(file_info->buf_ptr[i - 1]) - line_start) + 1;
 
-            text_ptr[line_idx].size = (size_t)(&buf[i - 1] - line_start) + 1;
+                line_idx++;
+            }
 
-            line_idx++;
-
-            line_start = &buf[i + 1];
+            line_start = &(file_info->buf_ptr[i + 1]);
             alpha_start = NULL;
             alpha_end = NULL;
         }
     }
-    line_idx--;
-
-    return line_idx;
 }
 
-PossibleErrors buf_input(const char *filename, char **buf_ptr, size_t *line_count, size_t *filesize) {
-    assert(filename   != NULL);
-    assert(buf_ptr    != NULL);
-    assert(line_count != NULL);
+PossibleErrors handle_buf_read(const char *filename, FileInfo *file_info) {
+    assert(filename != NULL);
+    assert(file_info   != NULL);
 
     FILE *file = open_file(filename, READ_MODE);
     if (file == NULL) {
@@ -93,33 +88,17 @@ PossibleErrors buf_input(const char *filename, char **buf_ptr, size_t *line_coun
         return kErrorOpening;
     }
 
-    *filesize = (size_t)size_of_file(filename);
+    file_info->filesize = (size_t)size_of_file(filename);
 
-    *buf_ptr = read_to_buf(filename, file, *filesize);
-    assert(buf_ptr != NULL);
+    file_info->buf_ptr = read_to_buf(filename, file, file_info->filesize);
+    assert(file_info->buf_ptr != NULL);
 
-    *line_count = count_lines(*buf_ptr);
+    file_info->count_lines = (int)count_lines(file_info->buf_ptr);
 
-    PossibleErrors err = close_file(file);
-    if (err != kNoError) {
-        return err;
-    }
+    file_info->text_ptr = (struct LineInfo *) calloc ((size_t)file_info->count_lines + 1, sizeof(LineInfo));
+    assert(file_info->text_ptr != NULL);
 
-    return kNoError;
-}
+    parse_buf(file_info);
 
-PossibleErrors handle_parse_buf(struct LineInfo *text_ptr, char *buf_ptr, size_t filesize, FILE *file) {
-    assert(text_ptr != NULL);
-    assert(buf_ptr  != NULL);
-    assert(file     != NULL);
-
-    parse_buf(buf_ptr, text_ptr, filesize);
-
-    int err = close_file(file);
-    if (err != kNoError) {
-        perror("fclse() failed");
-        return kErrorClosing;
-    }
-
-    return kNoError;
+    return close_file(file);
 }

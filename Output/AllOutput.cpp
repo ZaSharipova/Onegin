@@ -21,6 +21,7 @@ PossibleErrors output_with_buf(struct LineInfo *text_ptr, FILE *file, size_t fil
     assert(file     != NULL);
 
     size_t size = filesize + (size_t)line_count + 1;
+    
     char *buf_out = (char *) calloc(size, sizeof(char));
     assert(buf_out != NULL);
     char *ptr = buf_out; 
@@ -62,9 +63,10 @@ void output_all(FILE *file, struct LineInfo *text_ptr, CompareTypes compare_mode
     assert(file     != NULL);
     assert(text_ptr != NULL);
 
-    if (compare_mode == Global_direct) {
+    if (compare_mode == CompareTypesDirect) {
         print_sorted_LtoR_label(file);
         printf("Sorting  1 done. It is from line %d\n", 4);
+
     } else {
         print_sorted_RtoL_label(file);
         printf("Sorting  2 done. You can see it from line %d\n", LINECOUNT + 7);

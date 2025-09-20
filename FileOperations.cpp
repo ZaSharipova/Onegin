@@ -9,55 +9,49 @@
 #include "AllInput.h"
 #include "AllOutput.h"
 
-PossibleErrors handle_all_sort(char *buf_ptr, struct LineInfo *text_ptr, TypesOfSort sorting_type, const char *filename_in, const char *filename_out, size_t line_count) {
-    assert(filename_in  != NULL);
-    assert(filename_out != NULL);
-    assert(buf_ptr      != NULL);
-    assert(text_ptr     != NULL);
+PossibleErrors handle_all_sort(FileInfo *file_info, ArgumentModes flags) {
+    assert(file_info != NULL);
 
-    FILE *file = open_file(filename_out, WRITE_MODE);
+    FILE *file = open_file(flags.filename_out, WRITE_MODE);
 
-    handle_switch_sort(text_ptr, sorting_type, (int)line_count, compare_ltor);
-    output_all(file, text_ptr, Global_direct, (int)line_count);
+    handle_switch_sort(file_info, flags.sort_mode, compare_ltor);
+    output_all(file, file_info->text_ptr, CompareTypesDirect, (int)file_info->count_lines);
 
-    handle_switch_sort(text_ptr, sorting_type, (int)line_count, compare_rtol);
-    output_all(file, text_ptr, Global_reverse, (int)line_count);
+    handle_switch_sort(file_info, flags.sort_mode, compare_rtol);
+    output_all(file, file_info->text_ptr, CompareTypesReverse, (int)file_info->count_lines);
 
-    output_original(file, buf_ptr);
-
-    //output_sorted_lines(pointer, file, (int)line_count);
+    output_original(file, file_info->buf_ptr);
     
     PossibleErrors status = close_file(file);
     if (status != kNoError) {
-        perror("fclse() failed");
-        free(buf_ptr);
+        free(file_info->buf_ptr);
         return kErrorClosing;
     }
 
-    free(buf_ptr);
+    free(file_info->buf_ptr);
 
     return kNoError;
 }
 
-void handle_switch_sort(struct LineInfo *text_ptr, TypesOfSort sorting_type, int line_count, int (*compares)(const void *, const void *)) {
-    assert(text_ptr != NULL);
-    assert(compares != NULL);
+void handle_switch_sort(FileInfo *file_info, TypesOfSort sort_mode, int (*compares)(const void *, const void *)) {
+    assert(file_info != NULL);
+    assert(compares  != NULL);
 
-    switch(sorting_type) {
-    case (Global_qsorting):
-        qsort(text_ptr, (size_t)line_count, sizeof(LineInfo), compares);
+    switch (sort_mode) {
+    case (TypesOfSortQsort):
+        qsort(file_info->text_ptr, (size_t)file_info->count_lines, sizeof(LineInfo), compares);
         break;
 
-    case (Global_bubble_sorting):
-        bubble_sort(text_ptr, line_count, compares);
+    case (TypesOfSortBubble):
+        bubble_sort(file_info->text_ptr, file_info->count_lines, compares);
         break;
 
-    case (Global_quick_sorting):
-        quick_sort_with_stack(text_ptr, line_count, 0, line_count, compares);
+    case (TypesOfSortMyQuick):
+        quick_sort_with_stack(file_info->text_ptr, file_info->count_lines, 0, file_info->count_lines, compares);
         break;
 
-    case (Global_insertion_sorting):
-        insertion_sort(text_ptr, 0, line_count, compares);
+    case (TypesOfSortInsertion):
+        insertion_sort(file_info->text_ptr, 0, file_info->count_lines, compares);
         break;
 
     default:
@@ -72,6 +66,7 @@ FILE *open_file(const char *filename, const char *mode) {
 
     FILE *file = fopen(filename, mode);
     if (file == NULL) {
+        perror("fopen() failed");
         return NULL;
     }
 
@@ -80,11 +75,10 @@ FILE *open_file(const char *filename, const char *mode) {
 
 PossibleErrors close_file(FILE *file) {
     assert(file != NULL);
-    assert(file != stdin);
-    assert(file != stdout);
 
     int status = fclose(file);
     if (status != 0) {
+        perror("fclose() failed");
         return kErrorClosing;
     }
 
@@ -109,12 +103,37 @@ size_t count_lines(char *buf_ptr) {
     assert(buf_ptr != NULL);
 
     size_t counter = 0;
+    char *line_start = buf_ptr;
     char *ptr = buf_ptr;
 
-    while ((ptr = (strchr(ptr, '\n'))) != NULL) {
-        counter++;
+    while (*ptr != '\0') {
+        if (*ptr == '\n') {
+            size_t line_len = (size_t)(ptr - line_start);
+
+            int has_alpha = 0;
+            for (size_t i = 0; i < line_len; i++) {
+                if (isalpha((unsigned char)line_start[i])) {
+                    has_alpha = 1;
+                    break;
+                }
+            }
+
+            if (!is_blank_line(line_start, line_len) && has_alpha) {
+                counter++;
+            }
+
+            line_start = ptr + 1;
+        }
         ptr++;
     }
 
     return counter;
+}
+
+int is_blank_line(const char* start, size_t line_size) {
+    for (size_t i = 0; i < line_size; i++) {
+        if (!isspace((unsigned char)start[i]))
+            return 0;
+    }
+    return 1;
 }
