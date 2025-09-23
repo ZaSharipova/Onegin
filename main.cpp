@@ -9,7 +9,8 @@
 int main(int argc, char *argv[]) {
     struct ArgumentModes flags = {.filename_in = "TextOnegin.txt", 
         .filename_out = "SortedOnegin.txt", .sort_mode = TypesOfSortQsort};
-    struct FileInfo file_info = {.buf_ptr = NULL, .text_ptr = NULL, .filesize = 0, .count_lines = 0};
+    struct FileInfo file_info = {.buf_ptr = NULL, .text_ptr = NULL, 
+        .filesize = 0, .count_lines = 0};
 
     PossibleErrors err = parse_argv(argc, argv, &flags);
     if (err != kNoError) {
@@ -21,7 +22,7 @@ int main(int argc, char *argv[]) {
         return kErrorOpening;
     }
 
-    err = handle_buf_read(flags.filename_in, &file_info); //
+    err = handle_buf_read(flags.filename_in, &file_info);
 
     err = handle_all_sort(&file_info, flags); 
     if (err != kNoError) {

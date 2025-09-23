@@ -116,7 +116,7 @@ void quick_sort_with_stack(struct LineInfo *text_ptr, int line_count, int left_b
 
     SortBorders *stack = (SortBorders *) calloc ((size_t)line_count, sizeof(SortBorders));
     assert(stack != NULL);
-    
+
     int stack_size = line_count;
     int top = 0;
 
@@ -130,41 +130,54 @@ void quick_sort_with_stack(struct LineInfo *text_ptr, int line_count, int left_b
 
         int dist = right - left;
 
-        if (dist <= 1) {
-            continue;
+        switch (dist) {
+        case (0):
+        case (1):
+            break;
 
-        } else if (dist == 2) {
+        case (2):
             compare_two_pointers(&text_ptr[left], &text_ptr[left + 1], compares);
-            continue;
+            break;
 
-        } else if (dist == 3) {
-            compare_three_pointers(text_ptr, left, right - 1, compares); //return ptr to func
-            continue;
+        case (3):
+            compare_three_pointers(text_ptr, left, right - 1, compares);
+            break;
 
-        } else if (4 <= dist && dist <= 7) {
+        case (4):
+        case (5):
+        case (6):
+        case (7):
             insertion_sort(text_ptr, left, right, compares);
-            continue;
-        }
-        
-        int sep = partition(text_ptr, left, right - 1, compares);
+            break;
 
-        if (sep > left) {
-            top++;
-            if (top > stack_size) {
-                stack = (SortBorders *) realloc (stack, (size_t)stack_size + 1);
-                assert(stack != NULL);
+        default:
+            int sep = partition(text_ptr, left, right - 1, compares);
 
-                stack_size++;
+            if (sep > left) {
+                top++;
+                if (top > stack_size) {
+                    stack = (SortBorders *) realloc (stack, (size_t)(stack_size + 1) * sizeof(SortBorders *));
+                    assert(stack != NULL);
+
+                    stack_size++;
+                }
+
+                stack[top].left = left;
+                stack[top].right = sep;
             }
 
-            stack[top].left = left;
-            stack[top].right = sep;
-        }
+            if (right > sep) {
+                if (top > stack_size) {
+                    stack = (SortBorders *) realloc (stack, (size_t)(stack_size + 1) * sizeof(SortBorders *));
+                    assert(stack != NULL);
 
-        if (right > sep) {
-            top++;
-            stack[top].left = sep;
-            stack[top].right = right;
+                    stack_size++;
+                }
+
+                top++;
+                stack[top].left = sep;
+                stack[top].right = right;
+            }
         }
     }
 

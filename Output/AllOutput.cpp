@@ -7,8 +7,8 @@
 #include "AllOutputText.h"
 
 PossibleErrors output_sorted_lines(FILE *file, struct LineInfo *text_ptr, int line_count) {
-    assert(text_ptr != NULL);
     assert(file     != NULL);
+    assert(text_ptr != NULL);
 
     for (int i = 0; i < line_count; i++) {
         fprintf(file, "%.*s\n", (int)text_ptr[i].size, text_ptr[i].start_ptr);
@@ -21,7 +21,7 @@ PossibleErrors output_with_buf(struct LineInfo *text_ptr, FILE *file, size_t fil
     assert(file     != NULL);
 
     size_t size = filesize + (size_t)line_count + 1;
-    
+
     char *buf_out = (char *) calloc(size, sizeof(char));
     assert(buf_out != NULL);
     char *ptr = buf_out; 
@@ -59,7 +59,7 @@ PossibleErrors output_original_text(FILE *file, char *buf) {
     return kNoError;
 }
 
-void output_all(FILE *file, struct LineInfo *text_ptr, CompareTypes compare_mode, int line_count) {
+void output_sorted(FILE *file, struct LineInfo *text_ptr, CompareTypes compare_mode, int line_count) {
     assert(file     != NULL);
     assert(text_ptr != NULL);
 
@@ -69,7 +69,7 @@ void output_all(FILE *file, struct LineInfo *text_ptr, CompareTypes compare_mode
 
     } else {
         print_sorted_RtoL_label(file);
-        printf("Sorting  2 done. You can see it from line %d\n", LINECOUNT + 7);
+        printf("Sorting  2 done. You can see it from line %d\n", line_count + 7);
     }
 
     output_sorted_lines(file, text_ptr, line_count);
@@ -84,11 +84,11 @@ void output_all(FILE *file, struct LineInfo *text_ptr, CompareTypes compare_mode
 //     printf("Sorting  2 done. You can see it from line %d\n", LINECOUNT + 7);
 // }
 
-void output_original(FILE *file, char *buf_ptr) {
+void output_original(FILE *file, char *buf_ptr, int line_count) {
     assert(file != NULL);
     assert(buf_ptr != NULL);
 
     print_original_label(file);
     output_original_text(file, buf_ptr);
-    printf("Original Text is from line %d\n", LINECOUNT * 2 + 10);
+    printf("Original Text is from line %d\n", line_count * 2 + 10);
 }

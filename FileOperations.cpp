@@ -15,12 +15,12 @@ PossibleErrors handle_all_sort(FileInfo *file_info, ArgumentModes flags) {
     FILE *file = open_file(flags.filename_out, WRITE_MODE);
 
     handle_switch_sort(file_info, flags.sort_mode, compare_ltor);
-    output_all(file, file_info->text_ptr, CompareTypesDirect, (int)file_info->count_lines);
+    output_sorted(file, file_info->text_ptr, CompareTypesDirect, (int)file_info->count_lines);
 
     handle_switch_sort(file_info, flags.sort_mode, compare_rtol);
-    output_all(file, file_info->text_ptr, CompareTypesReverse, (int)file_info->count_lines);
+    output_sorted(file, file_info->text_ptr, CompareTypesReverse, (int)file_info->count_lines);
 
-    output_original(file, file_info->buf_ptr);
+    output_original(file, file_info->buf_ptr, file_info->count_lines);
     
     PossibleErrors status = close_file(file);
     if (status != kNoError) {
@@ -130,9 +130,11 @@ size_t count_lines(char *buf_ptr) {
     return counter;
 }
 
-int is_blank_line(const char* start, size_t line_size) {
+int is_blank_line(const char *str, size_t line_size) {
+    assert(str != NULL);
+
     for (size_t i = 0; i < line_size; i++) {
-        if (!isspace((unsigned char)start[i]))
+        if (!isspace((unsigned char)str[i]))
             return 0;
     }
     return 1;

@@ -59,6 +59,7 @@ void parse_buf(FileInfo *file_info) {
         if (end_of_line) {
             long line_len = &(file_info->buf_ptr[i]) - line_start;
             if (!is_blank_line(line_start, (size_t)line_len) && alpha_start != NULL) {
+
                 file_info->text_ptr[line_idx].start_ptr = line_start;
                 file_info->text_ptr[line_idx].end_ptr = &(file_info->buf_ptr[i - 1]);
 
@@ -79,8 +80,8 @@ void parse_buf(FileInfo *file_info) {
 }
 
 PossibleErrors handle_buf_read(const char *filename, FileInfo *file_info) {
-    assert(filename != NULL);
-    assert(file_info   != NULL);
+    assert(filename  != NULL);
+    assert(file_info != NULL);
 
     FILE *file = open_file(filename, READ_MODE);
     if (file == NULL) {

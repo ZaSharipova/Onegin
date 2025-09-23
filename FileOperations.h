@@ -24,10 +24,11 @@ size_t count_lines(char *buf_ptr);
 //! This function examines a line of given length and determines if all
 //! characters are whitespace (spaces, tabs, etc.).
 //!
-//! @param[in] start     Pointer to the start of the line.
+//! @param[in] str       Pointer to the start of the line.
 //! @param[in] line_size Length of the line in characters.
 //!
 //! @return 1 if the line is blank (only whitespace), 0 otherwise.
 //---------------------------------------------------------------------------
-int is_blank_line(const char* start, size_t line_size);
+int is_blank_line(const char *str, size_t line_size);
+
 #endif //FILE_OPERATIONS_H_
